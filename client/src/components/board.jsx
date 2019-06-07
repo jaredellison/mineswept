@@ -120,10 +120,10 @@ class Board extends React.Component {
   }
 
   endGame() {
-    console.log('game over')
+    console.log('game over');
   }
 
-  uncoverSquare(y, x) {
+  copySquares() {
     const newSquares = [];
     for (let row of this.state.squares) {
       let newRow = [];
@@ -133,8 +133,16 @@ class Board extends React.Component {
       }
       newSquares.push(newRow)
     }
+    return newSquares;
+  }
+
+  uncoverSquare(y, x) {
+    const newSquares = copySquares();
     newSquares[y][x].uncovered = true;
     this.setState(() => ({squares: newSquares}));
+  }
+
+  uncoverNeighbors() {
   }
 
   squareClickHandler(e, y, x) {
@@ -154,11 +162,15 @@ class Board extends React.Component {
     }
 
     // if square.count is over 1, uncover it
-    if (square.count > 1) {
+    if (square.count > 0) {
       this.uncoverSquare(y,x);
       return;
     }
     // if square is 0, uncover neighbors
+    if (square.count === 0) {
+      this.uncoverNeighbors(y,x);
+      return;
+    }
   }
 
   render() {
