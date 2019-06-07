@@ -31,6 +31,7 @@ body {
 .smile {
   height: 1em;
   width: 1em;
+  text-align: center;
 }
 
 .counter {
@@ -40,10 +41,14 @@ body {
   padding: .5em;
 }
 
+.square-row {
+  height: 1em;
+}
+
 .square {
+  display: inline-block;
   background: lightgrey;
-  border: 4px inset grey;
-  display: block;
+  border: 4px outset whitesmoke;
   height: 1em;
   width: 1em;
   text-align: center;
