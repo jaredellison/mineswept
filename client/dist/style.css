@@ -52,4 +52,9 @@ body {
   height: 1em;
   width: 1em;
   text-align: center;
+  vertical-align: middle;
+}
+
+.uncovered {
+  border: 1px solid grey;
 }
