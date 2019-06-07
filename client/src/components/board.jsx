@@ -13,7 +13,7 @@ class Board extends React.Component {
       mines: 10,
       timeCount: 0,
       flagCount: 0,
-      squares: null
+      squares: [[]]
     };
     this.startNewGame = this.startNewGame.bind(this);
   }
@@ -28,11 +28,13 @@ class Board extends React.Component {
     // create squareState array based on sizeX and sizeY
     const squares = this.createSquares(this.state.sizeX, this.state.sizeY);
     console.log('squares:', squares);
+    // fill board with mines based on this.state.mines
     this.placeMines(squares, this.state.mines);
     console.log('squares with mines:', squares);
-    // fill board with mines based on this.state.mines
-
     // calculate square counts based based on mines
+    this.getCounts(squares);
+    console.log('squares with counts:', squares);
+    this.setState(() => ({squares: squares}));
   }
 
   startTimer() {
@@ -84,6 +86,37 @@ class Board extends React.Component {
     return squares;
   }
 
+  getCounts(squares) {
+    const yMax = squares.length;
+    const xMax = squares[0].length;
+
+    for (let y = 0; y < yMax; y++) {
+      for (let x = 0; x < xMax; x++) {
+        let square = squares[y][x];
+        let count = 0;
+        if (square.mine) continue;
+        // Previous Row
+        if (squares[y - 1]) {
+          squares[y - 1][x - 1] && squares[y - 1][x - 1].mine && count++;
+          squares[y - 1][  x  ] && squares[y - 1][  x  ].mine && count++;
+          squares[y - 1][x + 1] && squares[y - 1][x + 1].mine && count++;
+        }
+        // Current Row
+        squares[  y  ][x - 1] && squares[  y  ][x - 1].mine && count++;
+        squares[  y  ][x + 1] && squares[  y  ][x + 1].mine && count++;
+        // Next Row
+        if (squares[y + 1]) {
+          squares[y + 1][x - 1] && squares[y + 1][x - 1].mine && count++;
+          squares[y + 1][x - 1] && squares[y + 1][  x  ].mine && count++;
+          squares[y + 1][x + 1] && squares[y + 1][x + 1].mine && count++;
+        }
+        square.count = count;
+      }
+    }
+
+    return squares;
+  }
+
   render() {
     return (
       <div className="board">
@@ -100,7 +133,17 @@ class Board extends React.Component {
           </div>
         </div>
         <div className="square-container">
-          <Square status="covered" count="1" />
+          {
+            this.state.squares.map((row,y) => {
+              return (
+                <div className="square-row">
+                {row.map((square, x) => (
+                  <Square key={`${x},${y}`}/>
+                ))}
+                </div>
+              )
+            })
+          }
         </div>
       </div>
     );
