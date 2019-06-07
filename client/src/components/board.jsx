@@ -13,7 +13,7 @@ class Board extends React.Component {
       mines: 10,
       timeCount: 0,
       flagCount: 0,
-      squares: null,
+      squares: null
     };
     this.startNewGame = this.startNewGame.bind(this);
   }
@@ -28,6 +28,8 @@ class Board extends React.Component {
     // create squareState array based on sizeX and sizeY
     const squares = this.createSquares(this.state.sizeX, this.state.sizeY);
     console.log('squares:', squares);
+    this.placeMines(squares, this.state.mines);
+    console.log('squares with mines:', squares);
     // fill board with mines based on this.state.mines
 
     // calculate square counts based based on mines
@@ -60,6 +62,23 @@ class Board extends React.Component {
         row.push(Object.assign({}, square));
       }
       squares.push(row);
+    }
+
+    return squares;
+  }
+
+  placeMines(squares, totalMines) {
+    const yMax = squares.length;
+    const xMax = squares[0].length;
+    let minesPlaced = 0;
+
+    while (minesPlaced < totalMines) {
+      let x = Math.floor(Math.random() * yMax);
+      let y = Math.floor(Math.random() * xMax);
+      if (!squares[y][x].mine) {
+        squares[y][x].mine = true;
+        ++minesPlaced;
+      }
     }
 
     return squares;
