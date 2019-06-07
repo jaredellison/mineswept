@@ -1,17 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Board from './components/board.jsx';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-
-  render(props) {
-    return (
-      <div>Hello World!</div>
-    )
-  }
-}
-
-ReactDOM.render(<App />, document.getElementById('app'));
+ReactDOM.render(<Board />, document.getElementById('app'));
