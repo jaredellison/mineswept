@@ -1,0 +1,50 @@
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+  background: white;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  width: 100%;
+  font-family: monospace;
+  font-size: 24pt;
+}
+
+.board {
+  border: 1px solid black;
+  padding: .25em;
+  margin: 1em;
+  display: inline-block;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.1em 0em .35em 0em;
+}
+
+.smile {
+  height: 1em;
+  width: 1em;
+}
+
+.counter {
+  display: inline;
+  height: 1em;
+  width: 3em;
+  padding: .5em;
+}
+
+.square {
+  background: lightgrey;
+  border: 4px inset grey;
+  display: block;
+  height: 1em;
+  width: 1em;
+  text-align: center;
+}
