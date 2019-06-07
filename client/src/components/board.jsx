@@ -7,7 +7,7 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      gameState: "newGame", // "new game", "playing", "winner", "game over"
+      gameState: "newGame", // "new-game", "playing", "winner", "game-over"
       sizeX: 9,
       sizeY: 9,
       mines: 10,
@@ -16,7 +16,7 @@ class Board extends React.Component {
       squareCounter: null, // adjacent mines 0 -> 8
       squareStatus: null // "covered", "uncovered", "flagged", "mine"
     };
-
+    this.startNewGame = this.startNewGame.bind(this);
   }
 
   componentDidMount() {
@@ -24,6 +24,8 @@ class Board extends React.Component {
   }
 
   startNewGame() {
+    console.log('Starting new game');
+    // Clear game state
     // create squareState array based on sizeX and sizeY
     // fill board with mines based on this.state.mines
     // calculate square counts based based on mines
@@ -42,10 +44,12 @@ class Board extends React.Component {
   render() {
     return (
       <div className="board">
-        board
         <div className="header">
           <Counter count={this.state.flagCount}/>
-          <Smile/>
+          <Smile
+            gameOver={this.state.gameState === "game-over"}
+            clickHandler={this.startNewGame}
+          />
           <Counter count={this.state.timeCount}/>
         </div>
         <div className="square-container">

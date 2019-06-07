@@ -1,7 +1,9 @@
 import React from 'react';
 
 const Smile = (props) => (
-  "smile"
+  <div className="smile" onClick={props.clickHandler}>
+    {props.gameOver ? "☺" : "☺" }
+  </div>
 )
 
 export default Smile;
