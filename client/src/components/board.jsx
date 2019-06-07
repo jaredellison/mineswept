@@ -15,7 +15,7 @@ class Board extends React.Component {
       flagCount: 0,
       minesMarked: 0,
       squareCounter: null, // adjacent mines 0 -> 8
-      squareState: null // "covered", "uncovered", "flagged", "mine"
+      squareStatus: null // "covered", "uncovered", "flagged", "mine"
     };
   }
 
@@ -31,7 +31,7 @@ class Board extends React.Component {
 
   render() {
     return (
-      <div class="board">
+      <div className="board">
         board
         <div className="header">
           <Counter/>
@@ -39,7 +39,7 @@ class Board extends React.Component {
           <Counter/>
         </div>
         <div className="square-container">
-          <Square/>
+          <Square status="covered" count="1"/>
         </div>
       </div>
     )
