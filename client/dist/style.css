@@ -20,6 +20,7 @@ body {
   padding: .25em;
   margin: 1em;
   display: inline-block;
+  user-select: none;
 }
 
 .header {
@@ -36,13 +37,12 @@ body {
 
 .counter {
   display: inline;
-  height: 1em;
-  width: 3em;
   padding: .5em;
 }
 
 .square-row {
   height: 1em;
+  white-space: nowrap;
 }
 
 .square {
