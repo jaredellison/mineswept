@@ -12,10 +12,13 @@ class Board extends React.Component {
       sizeY: 9,
       mines: 10,
       timeCount: 0,
-      flagCount: 0,
+      flagCount: 10,
       squares: [[]]
     };
+
     this.startNewGame = this.startNewGame.bind(this);
+    this.squareClickHandler = this.squareClickHandler.bind(this);
+    this.endGame = this.endGame.bind(this);
   }
 
   componentDidMount() {
@@ -23,18 +26,17 @@ class Board extends React.Component {
   }
 
   startNewGame() {
-    console.log('Starting new game');
-    // Clear game state
     // create squareState array based on sizeX and sizeY
     const squares = this.createSquares(this.state.sizeX, this.state.sizeY);
-    console.log('squares:', squares);
     // fill board with mines based on this.state.mines
     this.placeMines(squares, this.state.mines);
-    console.log('squares with mines:', squares);
     // calculate square counts based based on mines
     this.getCounts(squares);
-    console.log('squares with counts:', squares);
-    this.setState(() => ({squares: squares}));
+    this.setState(() => ({
+      squares: squares,
+      flagCount: this.state.mines,
+      timeCount: 0
+    }));
   }
 
   startTimer() {
@@ -98,16 +100,16 @@ class Board extends React.Component {
         // Previous Row
         if (squares[y - 1]) {
           squares[y - 1][x - 1] && squares[y - 1][x - 1].mine && count++;
-          squares[y - 1][  x  ] && squares[y - 1][  x  ].mine && count++;
+          squares[y - 1][x] && squares[y - 1][x].mine && count++;
           squares[y - 1][x + 1] && squares[y - 1][x + 1].mine && count++;
         }
         // Current Row
-        squares[  y  ][x - 1] && squares[  y  ][x - 1].mine && count++;
-        squares[  y  ][x + 1] && squares[  y  ][x + 1].mine && count++;
+        squares[y][x - 1] && squares[y][x - 1].mine && count++;
+        squares[y][x + 1] && squares[y][x + 1].mine && count++;
         // Next Row
         if (squares[y + 1]) {
           squares[y + 1][x - 1] && squares[y + 1][x - 1].mine && count++;
-          squares[y + 1][x - 1] && squares[y + 1][  x  ].mine && count++;
+          squares[y + 1][x - 1] && squares[y + 1][x].mine && count++;
           squares[y + 1][x + 1] && squares[y + 1][x + 1].mine && count++;
         }
         square.count = count;
@@ -115,6 +117,48 @@ class Board extends React.Component {
     }
 
     return squares;
+  }
+
+  endGame() {
+    console.log('game over')
+  }
+
+  uncoverSquare(y, x) {
+    const newSquares = [];
+    for (let row of this.state.squares) {
+      let newRow = [];
+      for (let square of row) {
+        let newSquare = Object.assign({}, square);
+        newRow.push(newSquare);
+      }
+      newSquares.push(newRow)
+    }
+    newSquares[y][x].uncovered = true;
+    this.setState(() => ({squares: newSquares}));
+  }
+
+  squareClickHandler(e, y, x) {
+    console.log('e.button:', e.button);
+    console.log('x:', x, 'y:', y);
+    const square = this.state.squares[y][x];
+    console.log('this.state.squares[y][x]:', this.state.squares[y][x]);
+    // if this is the clock has not started, start it
+
+    // if square is uncovered return
+    if (square.uncovered) return;
+
+    // if square is a mine, game over
+    if (square.mine) {
+      this.endGame();
+      return;
+    }
+
+    // if square.count is over 1, uncover it
+    if (square.count > 1) {
+      this.uncoverSquare(y,x);
+      return;
+    }
+    // if square is 0, uncover neighbors
   }
 
   render() {
@@ -133,17 +177,22 @@ class Board extends React.Component {
           </div>
         </div>
         <div className="square-container">
-          {
-            this.state.squares.map((row,y) => {
-              return (
-                <div className="square-row">
-                {row.map((square, x) => (
-                  <Square key={`${x},${y}`}/>
+          {this.state.squares.map((row, y) => {
+            return (
+              <div className="square-row">
+                {row.map((squareData, x) => (
+                  <Square
+                    key={`${x},${y}`}
+                    clickHandler={e => {
+                      e.preventDefault();
+                      this.squareClickHandler(e, y, x);
+                    }}
+                    {...squareData}
+                  />
                 ))}
-                </div>
-              )
-            })
-          }
+              </div>
+            );
+          })}
         </div>
       </div>
     );
