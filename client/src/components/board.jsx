@@ -7,7 +7,7 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      gameState: "newGame", // "new-game", "playing", "winner", "game-over"
+      gameState: 'new-game', // "new-game", "playing", "winner", "game-over"
       sizeX: 9,
       sizeY: 9,
       mines: 10,
@@ -36,7 +36,7 @@ class Board extends React.Component {
     setInterval(() => {
       const time = this.state.timeCount;
       if (time < 999) {
-        this.setState(() => ({timeCount: time + 1}));
+        this.setState(() => ({ timeCount: time + 1 }));
       }
     }, 1000);
   }
@@ -45,18 +45,22 @@ class Board extends React.Component {
     return (
       <div className="board">
         <div className="header">
-          <Counter count={this.state.flagCount}/>
+          <div className="left-counter">
+            <Counter count={this.state.flagCount} />
+          </div>
           <Smile
-            gameOver={this.state.gameState === "game-over"}
+            gameOver={this.state.gameState === 'game-over'}
             clickHandler={this.startNewGame}
           />
-          <Counter count={this.state.timeCount}/>
+          <div className="left-counter">
+            <Counter count={this.state.timeCount} />
+          </div>
         </div>
         <div className="square-container">
-          <Square status="covered" count="1"/>
+          <Square status="covered" count="1" />
         </div>
       </div>
-    )
+    );
   }
 }
 
