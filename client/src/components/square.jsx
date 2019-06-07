@@ -4,11 +4,8 @@ const Square = props => {
   const status = props.status || "covered";
 
   return (
-    <div className="square">
-      {props.status === 'covered' && 'c'}
-      {props.status === 'flagged' && 'f'}
-      {props.status === 'mine' && 'm'}
-      {props.status === 'uncovered' && props.count}
+    <div className="square" onClick={props.clickHandler}>
+      {props.uncovered && props.count}
     </div>
   );
 };
