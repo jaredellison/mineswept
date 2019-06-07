@@ -13,10 +13,10 @@ class Board extends React.Component {
       mines: 10,
       timeCount: 0,
       flagCount: 0,
-      minesMarked: 0,
       squareCounter: null, // adjacent mines 0 -> 8
       squareStatus: null // "covered", "uncovered", "flagged", "mine"
     };
+
   }
 
   componentDidMount() {
@@ -29,14 +29,24 @@ class Board extends React.Component {
     // calculate square counts based based on mines
   }
 
+  startTimer() {
+    // Increment game timer each second
+    setInterval(() => {
+      const time = this.state.timeCount;
+      if (time < 999) {
+        this.setState(() => ({timeCount: time + 1}));
+      }
+    }, 1000);
+  }
+
   render() {
     return (
       <div className="board">
         board
         <div className="header">
-          <Counter/>
+          <Counter count={this.state.flagCount}/>
           <Smile/>
-          <Counter/>
+          <Counter count={this.state.timeCount}/>
         </div>
         <div className="square-container">
           <Square status="covered" count="1"/>
