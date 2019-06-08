@@ -14,7 +14,7 @@ class Board extends React.Component {
       timeCount: 0,
       flagCount: 10,
       squares: [[]],
-      timerId: null,
+      timerId: null
     };
 
     this.startNewGame = this.startNewGame.bind(this);
@@ -24,7 +24,14 @@ class Board extends React.Component {
 
   componentDidMount() {
     this.startNewGame();
+    // Prevent right clicks
+    document.oncontextmenu = e => {
+      e.preventDefault();
+    };
   }
+
+  ////////////////////////////////////////
+  //  Change Game State
 
   startNewGame() {
     // create squareState array based on sizeX and sizeY
@@ -41,25 +48,56 @@ class Board extends React.Component {
     }));
   }
 
-  startTimer() {
-    // Increment game timer each second
-    if (this.state.timerId !== null) return;
+  endGame() {
+    this.setState(() => ({ gameState: 'game-over' }));
+    this.stopTimer();
 
-    let id = setInterval(() => {
-      const time = this.state.timeCount;
-      if (time < 999) {
-        this.setState(() => ({ timeCount: time + 1 }));
+    const squares = this.copySquares(this.state.squares);
+
+    for (let row of squares) {
+      for (let square of row) {
+        if (square.mine === true) square.uncovered = true;
       }
-    }, 1000);
-    this.setState(() => ({ timerId: id }));
+    }
+
+    this.setState(() => ({ squares: squares }));
   }
 
-  stopTimer() {
-    clearInterval(this.state.timerId);
-    this.setState(() => ({ timerId: null }));
+  ////////////////////////////////////////
+  //  Square Manipulation
+
+  uncoverSquare(y, x) {
+    const newSquares = this.copySquares(this.state.squares);
+    newSquares[y][x].uncovered = true;
+    this.setState(() => ({ squares: newSquares }));
   }
 
-  // Create a two dimensional array of squares
+  toggleFlag(y, x) {
+    const newSquares = this.copySquares(this.state.squares);
+    let flag = newSquares[y][x].flag;
+    let flagCount = this.state.flagCount;
+
+    console.log('y:', y);
+    console.log('x:', x);
+    console.log('flag:', flag);
+    console.log('flagCount:', flagCount);
+
+    if (!flag && flagCount > 0) {
+      // Toggle On
+      newSquares[y][x].flag = true;
+      flagCount--;
+    } else {
+      // Toggle Off
+      newSquares[y][x].flag = false;
+      flagCount++;
+    }
+
+    this.setState(() => ({
+      squares: newSquares,
+      flagCount: flagCount
+    }));
+  }
+
   createSquares(sizeY, sizeX) {
     const square = {
       uncovered: false,
@@ -119,21 +157,6 @@ class Board extends React.Component {
     return squares;
   }
 
-  endGame() {
-    this.setState(() => ({gameState: "game-over"}));
-    this.stopTimer();
-
-    const squares = this.copySquares(this.state.squares);
-
-    for (let row of squares) {
-      for (let square of row) {
-        if (square.mine === true) square.uncovered = true;
-      }
-    }
-
-    this.setState(() => ({squares: squares}));
-  }
-
   copySquares(squares) {
     const newSquares = [];
     for (let row of squares) {
@@ -142,16 +165,13 @@ class Board extends React.Component {
         let newSquare = Object.assign({}, square);
         newRow.push(newSquare);
       }
-      newSquares.push(newRow)
+      newSquares.push(newRow);
     }
     return newSquares;
   }
 
-  uncoverSquare(y, x) {
-    const newSquares = this.copySquares(this.state.squares);
-    newSquares[y][x].uncovered = true;
-    this.setState(() => ({squares: newSquares}));
-  }
+  ////////////////////////////////////////
+  //  Square Helpers
 
   uncoverNeighbors(y, x, yMax, xMax) {
     const newSquares = this.copySquares(this.state.squares);
@@ -172,11 +192,11 @@ class Board extends React.Component {
         x > 0 && searchNeighbors(y, x - 1);
         x < xMax - 1 && searchNeighbors(y, x + 1);
       }
-    }
+    };
 
     searchNeighbors(y, x);
 
-    this.setState(() => ({squares: newSquares}));
+    this.setState(() => ({ squares: newSquares }));
   }
 
   getNeighbors(y, x, yMax, xMax) {
@@ -185,7 +205,6 @@ class Board extends React.Component {
     const endY = Math.min(yMax - 1, y + 1);
     const endX = Math.min(xMax - 1, x + 1);
     const result = [];
-
 
     for (let yI = startY; yI <= endY; yI++) {
       for (let xI = startX; xI <= endX; xI++) {
@@ -198,46 +217,84 @@ class Board extends React.Component {
     return result;
   }
 
+  ////////////////////////////////////////
+  //  Timers
+
+  startTimer() {
+    // Increment game timer each second
+    if (this.state.timerId !== null) return;
+
+    let id = setInterval(() => {
+      const time = this.state.timeCount;
+      if (time < 999) {
+        this.setState(() => ({ timeCount: time + 1 }));
+      }
+    }, 1000);
+    this.setState(() => ({ timerId: id }));
+  }
+
+  stopTimer() {
+    clearInterval(this.state.timerId);
+    this.setState(() => ({ timerId: null }));
+  }
+
+  ////////////////////////////////////////
+  //  Event Handlers
+
   squareClickHandler(e, y, x) {
     const square = this.state.squares[y][x];
 
-    // if this is the clock has not started, start it
-    if (this.state.gameState === "game-over") {
+    // disable clicks
+    if (this.state.gameState === 'game-over') {
       return;
     }
 
-    // if square is a mine, game over
-    // due to race condition this check must happen before starting timer
-    if (square.mine) {
-      this.endGame();
-      return;
+    // Left Click
+    if (e.button === 0) {
+      // disable clicks
+      if (square.flag) {
+        return;
+      }
+
+      // if square is a mine, game over
+      // due to race condition this check must happen before starting timer
+      if (square.mine) {
+        this.endGame();
+        return;
+      }
+
+      // if square is uncovered return
+      if (square.uncovered) return;
+
+      // if square.count is over 1, uncover it
+      if (square.count > 0) {
+        this.uncoverSquare(y, x);
+        return;
+      }
+
+      // if square is 0, uncover neighbors
+      if (square.count === 0) {
+        this.uncoverNeighbors(y, x, this.state.sizeY, this.state.sizeX);
+        return;
+      }
+    }
+
+    // Right Click
+    if (e.button === 2) {
+      this.toggleFlag(y, x);
     }
 
     // if this is the clock has not started, start it
-    if (this.state.gameState === "new-game") {
-      this.setState(() => ({gameState: "playing"}));
+    if (this.state.gameState === 'new-game') {
+      this.setState(() => ({ gameState: 'playing' }));
       this.startTimer();
-    }
-
-    // if square is uncovered return
-    if (square.uncovered) return;
-
-    // if square.count is over 1, uncover it
-    if (square.count > 0) {
-      this.uncoverSquare(y,x);
-      return;
-    }
-
-    // if square is 0, uncover neighbors
-    if (square.count === 0) {
-      this.uncoverNeighbors(y, x, this.state.sizeY, this.state.sizeX);
-      return;
     }
   }
 
   render() {
     return (
       <div className="board">
+
         <div className="header">
           <div className="left-counter">
             <Counter count={this.state.flagCount} />
@@ -250,25 +307,28 @@ class Board extends React.Component {
             <Counter count={this.state.timeCount} />
           </div>
         </div>
-        <div className="square-container">
-          {this.state.squares.map((row, y) => {
-            return (
-              <div className="square-row">
-                {row.map((squareData, x) => (
-                  <Square
-                    key={`${x},${y}`}
-                    gameState={this.state.gameState}
-                    clickHandler={e => {
-                      e.preventDefault();
-                      this.squareClickHandler(e, y, x);
-                    }}
-                    {...squareData}
-                  />
-                ))}
-              </div>
-            );
-          })}
-        </div>
+
+        <table>
+          <tbody className="square-container">
+            {this.state.squares.map((row, y) => {
+              return (
+                <tr className="square-row">
+                  {row.map((squareData, x) => (
+                    <Square
+                      key={`${x},${y}`}
+                      gameState={this.state.gameState}
+                      clickHandler={e => {
+                        this.squareClickHandler(e, y, x);
+                      }}
+                      {...squareData}
+                    />
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
       </div>
     );
   }
