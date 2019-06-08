@@ -122,6 +122,16 @@ class Board extends React.Component {
   endGame() {
     this.setState(() => ({gameState: "game-over"}));
     this.stopTimer();
+
+    const squares = this.copySquares(this.state.squares);
+
+    for (let row of squares) {
+      for (let square of row) {
+        if (square.mine === true) square.uncovered = true;
+      }
+    }
+
+    this.setState(() => ({squares: squares}));
   }
 
   copySquares(squares) {
