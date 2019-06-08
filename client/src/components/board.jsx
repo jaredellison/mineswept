@@ -13,7 +13,8 @@ class Board extends React.Component {
       mines: 10,
       timeCount: 0,
       flagCount: 10,
-      squares: [[]]
+      squares: [[]],
+      timerId: null,
     };
 
     this.startNewGame = this.startNewGame.bind(this);
@@ -33,6 +34,7 @@ class Board extends React.Component {
     // calculate square counts based based on mines
     this.getCounts(squares);
     this.setState(() => ({
+      gameState: 'new-game',
       squares: squares,
       flagCount: this.state.mines,
       timeCount: 0
@@ -41,12 +43,20 @@ class Board extends React.Component {
 
   startTimer() {
     // Increment game timer each second
-    setInterval(() => {
+    if (this.state.timerId !== null) return;
+
+    let id = setInterval(() => {
       const time = this.state.timeCount;
       if (time < 999) {
         this.setState(() => ({ timeCount: time + 1 }));
       }
     }, 1000);
+    this.setState(() => ({ timerId: id }));
+  }
+
+  stopTimer() {
+    clearInterval(this.state.timerId);
+    this.setState(() => ({ timerId: null }));
   }
 
   // Create a two dimensional array of squares
@@ -97,20 +107,10 @@ class Board extends React.Component {
         let square = squares[y][x];
         let count = 0;
         if (square.mine) continue;
-        // Previous Row
-        if (squares[y - 1]) {
-          squares[y - 1][x - 1] && squares[y - 1][x - 1].mine && count++;
-          squares[y - 1][x] && squares[y - 1][x].mine && count++;
-          squares[y - 1][x + 1] && squares[y - 1][x + 1].mine && count++;
-        }
-        // Current Row
-        squares[y][x - 1] && squares[y][x - 1].mine && count++;
-        squares[y][x + 1] && squares[y][x + 1].mine && count++;
-        // Next Row
-        if (squares[y + 1]) {
-          squares[y + 1][x - 1] && squares[y + 1][x - 1].mine && count++;
-          squares[y + 1][x - 1] && squares[y + 1][x].mine && count++;
-          squares[y + 1][x + 1] && squares[y + 1][x + 1].mine && count++;
+
+        let neighbors = this.getNeighbors(y, x, yMax, xMax);
+        for (let pair of neighbors) {
+          if (squares[pair[0]][pair[1]].mine) count++;
         }
         square.count = count;
       }
@@ -120,12 +120,13 @@ class Board extends React.Component {
   }
 
   endGame() {
-    console.log('game over');
+    this.setState(() => ({gameState: "game-over"}));
+    this.stopTimer();
   }
 
-  copySquares() {
+  copySquares(squares) {
     const newSquares = [];
-    for (let row of this.state.squares) {
+    for (let row of squares) {
       let newRow = [];
       for (let square of row) {
         let newSquare = Object.assign({}, square);
@@ -137,38 +138,89 @@ class Board extends React.Component {
   }
 
   uncoverSquare(y, x) {
-    const newSquares = copySquares();
+    const newSquares = this.copySquares(this.state.squares);
     newSquares[y][x].uncovered = true;
     this.setState(() => ({squares: newSquares}));
   }
 
-  uncoverNeighbors() {
+  uncoverNeighbors(y, x, yMax, xMax) {
+    const newSquares = this.copySquares(this.state.squares);
+
+    // Recursively search and transform neighbors
+    const searchNeighbors = (y, x) => {
+      // Base cases
+      if (y < 0 || y >= yMax) return;
+      if (x < 0 || x >= xMax) return;
+      if (newSquares[y][x].uncovered === true) return;
+
+      newSquares[y][x].uncovered = true;
+
+      // Recursive cases
+      if (newSquares[y][x].count === 0) {
+        y > 0 && searchNeighbors(y - 1, x);
+        y < yMax - 1 && searchNeighbors(y + 1, x);
+        x > 0 && searchNeighbors(y, x - 1);
+        x < xMax - 1 && searchNeighbors(y, x + 1);
+      }
+    }
+
+    searchNeighbors(y, x);
+
+    this.setState(() => ({squares: newSquares}));
+  }
+
+  getNeighbors(y, x, yMax, xMax) {
+    const startY = Math.max(0, y - 1);
+    const startX = Math.max(0, x - 1);
+    const endY = Math.min(yMax - 1, y + 1);
+    const endX = Math.min(xMax - 1, x + 1);
+    const result = [];
+
+
+    for (let yI = startY; yI <= endY; yI++) {
+      for (let xI = startX; xI <= endX; xI++) {
+        if (!(yI === y && xI === x)) {
+          result.push([yI, xI]);
+        }
+      }
+    }
+
+    return result;
   }
 
   squareClickHandler(e, y, x) {
-    console.log('e.button:', e.button);
-    console.log('x:', x, 'y:', y);
     const square = this.state.squares[y][x];
-    console.log('this.state.squares[y][x]:', this.state.squares[y][x]);
-    // if this is the clock has not started, start it
 
-    // if square is uncovered return
-    if (square.uncovered) return;
+    // if this is the clock has not started, start it
+    if (this.state.gameState === "game-over") {
+      return;
+    }
 
     // if square is a mine, game over
+    // due to race condition this check must happen before starting timer
     if (square.mine) {
       this.endGame();
       return;
     }
+
+    // if this is the clock has not started, start it
+    if (this.state.gameState === "new-game") {
+      this.setState(() => ({gameState: "playing"}));
+      this.startTimer();
+    }
+
+    // if square is uncovered return
+    if (square.uncovered) return;
 
     // if square.count is over 1, uncover it
     if (square.count > 0) {
       this.uncoverSquare(y,x);
       return;
     }
+
     // if square is 0, uncover neighbors
     if (square.count === 0) {
-      this.uncoverNeighbors(y,x);
+      this.uncoverNeighbors(y, x, this.state.sizeY, this.state.sizeX);
       return;
     }
   }
@@ -195,6 +247,7 @@ class Board extends React.Component {
                 {row.map((squareData, x) => (
                   <Square
                     key={`${x},${y}`}
+                    gameState={this.state.gameState}
                     clickHandler={e => {
                       e.preventDefault();
                       this.squareClickHandler(e, y, x);
