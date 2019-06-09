@@ -33,6 +33,8 @@ body {
   height: 1em;
   width: 1em;
   text-align: center;
+  position: relative;
+  top: .1em;
 }
 
 .counter {
@@ -53,10 +55,12 @@ body {
   width: 1em;
   text-align: center;
   vertical-align: bottom;
+  line-height: 0.8em;
 }
 
 .uncovered {
   border: 1px solid grey;
+  line-height: 1em;
 }
 
 .losing {
