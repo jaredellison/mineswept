@@ -3,26 +3,27 @@ import Counter from './counter.jsx';
 import Smile from './smile.jsx';
 import Square from './square.jsx';
 
+const INIT_STATE = {
+  gameState: 'new-game', // "new-game", "playing", "winner", "game-over"
+  sizeX: 9,
+  sizeY: 9,
+  mines: 10,
+  timeCount: 0,
+  flagCount: 10,
+  squares: [[]],
+  timerId: null,
+  uncoveredCount: 0,
+  losing: [null, null]
+}
+
 class Board extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      gameState: 'new-game', // "new-game", "playing", "winner", "game-over"
-      sizeX: 9,
-      sizeY: 9,
-      mines: 2,
-      timeCount: 0,
-      flagCount: 10,
-      squares: [[]],
-      timerId: null,
-      uncoveredCount: 0,
-      losing: [null, null]
-    };
+    this.state = INIT_STATE;
 
+    // Event Handlers
     this.startNewGame = this.startNewGame.bind(this);
     this.squareClickHandler = this.squareClickHandler.bind(this);
-    this.endGame = this.endGame.bind(this);
-    this.checkWinner = this.checkWinner.bind(this);
   }
 
   componentDidMount() {
@@ -43,12 +44,16 @@ class Board extends React.Component {
     this.placeMines(squares, this.state.mines);
     // calculate square counts based based on mines
     this.getCounts(squares);
-    this.setState(() => ({
-      gameState: 'new-game',
-      squares: squares,
-      flagCount: this.state.mines,
-      timeCount: 0
-    }));
+    this.setState(() => {
+    return Object.assign(
+      INIT_STATE,
+      {
+        gameState: 'new-game',
+        squares: squares,
+        flagCount: this.state.mines,
+        timeCount: 0
+      }
+    )});
   }
 
   endGame(y, x) {
@@ -157,6 +162,9 @@ class Board extends React.Component {
   }
 
   toggleFlag(y, x) {
+    // Prevent flagging previously uncovered squares
+    if (this.state.squares[y][x].uncovered) return;
+
     const newSquares = this.copySquares(this.state.squares);
     let flag = newSquares[y][x].flag;
     let flagCount = this.state.flagCount;
