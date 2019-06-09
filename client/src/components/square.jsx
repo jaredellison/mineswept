@@ -8,7 +8,7 @@ const Square = props => {
     >
       {props.gameState === "game-over" && props.mine && !props.flag && "✹"}
       {props.flag && "⚑"}
-      {props.uncovered && !props.flag && props.count}
+      {props.uncovered && !props.flag && props.count > 0 ? props.count : " "}
     </td>
   );
 };
