@@ -58,3 +58,7 @@ body {
 .uncovered {
   border: 1px solid grey;
 }
+
+.losing {
+  background: red;
+}

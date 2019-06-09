@@ -15,7 +15,8 @@ class Board extends React.Component {
       flagCount: 10,
       squares: [[]],
       timerId: null,
-      uncoveredCount: 0
+      uncoveredCount: 0,
+      losing: [null, null]
     };
 
     this.startNewGame = this.startNewGame.bind(this);
@@ -50,7 +51,7 @@ class Board extends React.Component {
     }));
   }
 
-  endGame() {
+  endGame(y, x) {
     this.setState(() => ({ gameState: 'game-over' }));
     this.stopTimer();
 
@@ -62,12 +63,14 @@ class Board extends React.Component {
       }
     }
 
-    this.setState(() => ({ squares: squares }));
+    this.setState(() => ({
+      squares: squares,
+      losing: [y, x]
+    }));
   }
 
   checkWinner(uncovered) {
     if (uncovered + this.state.mines === this.state.sizeX * this.state.sizeY) {
-      console.log('WINNER!!!!!!');
       this.stopTimer();
       this.setState(() => {
         return { gameState: 'winner' };
@@ -246,7 +249,6 @@ class Board extends React.Component {
   //  Timers
 
   startTimer() {
-    console.log('starting timer');
     // Increment game timer each second
     if (this.state.timerId !== null || this.state.gameState !== 'playing') {
       return;
@@ -289,7 +291,7 @@ class Board extends React.Component {
       // if square is a mine, game over
       // due to race condition this check must happen before starting timer
       if (square.mine) {
-        this.endGame();
+        this.endGame(y, x);
         return;
       }
 
@@ -358,6 +360,9 @@ class Board extends React.Component {
                       flag={squareData.flag}
                       count={squareData.count}
                       mine={squareData.mine}
+                      losing={
+                        this.state.losing[0] === y && this.state.losing[1] === x
+                      }
                     />
                   ))}
                 </tr>
