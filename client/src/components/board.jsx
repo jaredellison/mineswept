@@ -10,16 +10,18 @@ class Board extends React.Component {
       gameState: 'new-game', // "new-game", "playing", "winner", "game-over"
       sizeX: 9,
       sizeY: 9,
-      mines: 10,
+      mines: 2,
       timeCount: 0,
       flagCount: 10,
       squares: [[]],
-      timerId: null
+      timerId: null,
+      uncoveredCount: 0
     };
 
     this.startNewGame = this.startNewGame.bind(this);
     this.squareClickHandler = this.squareClickHandler.bind(this);
     this.endGame = this.endGame.bind(this);
+    this.checkWinner = this.checkWinner.bind(this);
   }
 
   componentDidMount() {
@@ -61,6 +63,16 @@ class Board extends React.Component {
     }
 
     this.setState(() => ({ squares: squares }));
+  }
+
+  checkWinner(uncovered) {
+    if (uncovered + this.state.mines === this.state.sizeX * this.state.sizeY) {
+      console.log('WINNER!!!!!!');
+      this.stopTimer();
+      this.setState(() => {
+        return { gameState: 'winner' };
+      });
+    }
   }
 
   ////////////////////////////////////////
@@ -130,8 +142,15 @@ class Board extends React.Component {
 
   uncoverSquare(y, x) {
     const newSquares = this.copySquares(this.state.squares);
+    let uncoveredCount = this.state.uncoveredCount + 1;
+
+    this.checkWinner(uncoveredCount);
+
     newSquares[y][x].uncovered = true;
-    this.setState(() => ({ squares: newSquares }));
+    this.setState(() => ({
+      squares: newSquares,
+      uncoveredCount: uncoveredCount
+    }));
   }
 
   toggleFlag(y, x) {
@@ -139,8 +158,7 @@ class Board extends React.Component {
     let flag = newSquares[y][x].flag;
     let flagCount = this.state.flagCount;
 
-
-    if (!flag && flagCount > 0) {
+    if (!flag) {
       // Toggle On
       newSquares[y][x].flag = true;
       flagCount--;
@@ -163,15 +181,18 @@ class Board extends React.Component {
 
   uncoverNeighbors(y, x, yMax, xMax) {
     const newSquares = this.copySquares(this.state.squares);
+    let uncoveredCount = this.state.uncoveredCount;
 
     // Recursively search and transform neighbors
     const searchNeighbors = (y, x) => {
       // Base cases
       if (y < 0 || y >= yMax) return;
       if (x < 0 || x >= xMax) return;
-      if (newSquares[y][x].uncovered === true) return;
+      if (newSquares[y][x].uncovered || newSquares[y][x].flag) return;
 
       newSquares[y][x].uncovered = true;
+      uncoveredCount++;
+      this.checkWinner(uncoveredCount);
 
       // Recursive cases
       if (newSquares[y][x].count === 0) {
@@ -184,7 +205,10 @@ class Board extends React.Component {
 
     searchNeighbors(y, x);
 
-    this.setState(() => ({ squares: newSquares }));
+    this.setState(() => ({
+      squares: newSquares,
+      uncoveredCount: uncoveredCount
+    }));
   }
 
   getNeighbors(y, x, yMax, xMax) {
@@ -222,8 +246,11 @@ class Board extends React.Component {
   //  Timers
 
   startTimer() {
+    console.log('starting timer');
     // Increment game timer each second
-    if (this.state.timerId !== null) return;
+    if (this.state.timerId !== null || this.state.gameState !== 'playing') {
+      return;
+    }
 
     let id = setInterval(() => {
       const time = this.state.timeCount;
@@ -248,7 +275,7 @@ class Board extends React.Component {
     const square = this.state.squares[y][x];
 
     // Disable clicks
-    if (this.state.gameState === 'game-over') {
+    if (['game-over', 'winner'].includes(this.state.gameState)) {
       return;
     }
 
@@ -272,13 +299,11 @@ class Board extends React.Component {
       // if square.count is over 1, uncover it
       if (square.count > 0) {
         this.uncoverSquare(y, x);
-        return;
       }
 
       // if square is 0, uncover neighbors
       if (square.count === 0) {
         this.uncoverNeighbors(y, x, this.state.sizeY, this.state.sizeX);
-        return;
       }
     }
 
@@ -289,21 +314,27 @@ class Board extends React.Component {
 
     // If the clock has not started, start it
     if (this.state.gameState === 'new-game') {
-      this.setState(() => ({ gameState: 'playing' }));
-      this.startTimer();
+      this.setState(
+        state => {
+          return state.gameState === 'new-game' ? { gameState: 'playing' } : {};
+        },
+        () => {
+          this.startTimer();
+        }
+      );
     }
   }
 
   render() {
     return (
       <div className="board">
-
         <div className="header">
           <div className="left-counter">
             <Counter count={this.state.flagCount} />
           </div>
           <Smile
             gameOver={this.state.gameState === 'game-over'}
+            winner={this.state.gameState === 'winner'}
             clickHandler={this.startNewGame}
           />
           <div className="left-counter">
@@ -334,7 +365,6 @@ class Board extends React.Component {
             })}
           </tbody>
         </table>
-
       </div>
     );
   }
