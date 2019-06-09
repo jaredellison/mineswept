@@ -319,11 +319,14 @@ class Board extends React.Component {
                   {row.map((squareData, x) => (
                     <Square
                       key={`${x},${y}`}
-                      gameState={this.state.gameState}
                       clickHandler={e => {
                         this.squareClickHandler(e, y, x);
                       }}
-                      {...squareData}
+                      gameState={this.state.gameState}
+                      uncovered={squareData.uncovered}
+                      flag={squareData.flag}
+                      count={squareData.count}
+                      mine={squareData.mine}
                     />
                   ))}
                 </tr>
