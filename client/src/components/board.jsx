@@ -77,19 +77,17 @@ class Board extends React.Component {
     let flag = newSquares[y][x].flag;
     let flagCount = this.state.flagCount;
 
-    console.log('y:', y);
-    console.log('x:', x);
-    console.log('flag:', flag);
-    console.log('flagCount:', flagCount);
 
     if (!flag && flagCount > 0) {
       // Toggle On
       newSquares[y][x].flag = true;
       flagCount--;
-    } else {
+    } else if (flag) {
       // Toggle Off
       newSquares[y][x].flag = false;
       flagCount++;
+    } else {
+      return;
     }
 
     this.setState(() => ({
