@@ -64,37 +64,7 @@ class Board extends React.Component {
   }
 
   ////////////////////////////////////////
-  //  Square Manipulation
-
-  uncoverSquare(y, x) {
-    const newSquares = this.copySquares(this.state.squares);
-    newSquares[y][x].uncovered = true;
-    this.setState(() => ({ squares: newSquares }));
-  }
-
-  toggleFlag(y, x) {
-    const newSquares = this.copySquares(this.state.squares);
-    let flag = newSquares[y][x].flag;
-    let flagCount = this.state.flagCount;
-
-
-    if (!flag && flagCount > 0) {
-      // Toggle On
-      newSquares[y][x].flag = true;
-      flagCount--;
-    } else if (flag) {
-      // Toggle Off
-      newSquares[y][x].flag = false;
-      flagCount++;
-    } else {
-      return;
-    }
-
-    this.setState(() => ({
-      squares: newSquares,
-      flagCount: flagCount
-    }));
-  }
+  //  Initialize game
 
   createSquares(sizeY, sizeX) {
     const square = {
@@ -155,17 +125,37 @@ class Board extends React.Component {
     return squares;
   }
 
-  copySquares(squares) {
-    const newSquares = [];
-    for (let row of squares) {
-      let newRow = [];
-      for (let square of row) {
-        let newSquare = Object.assign({}, square);
-        newRow.push(newSquare);
-      }
-      newSquares.push(newRow);
+  ////////////////////////////////////////
+  //  Square Manipulation
+
+  uncoverSquare(y, x) {
+    const newSquares = this.copySquares(this.state.squares);
+    newSquares[y][x].uncovered = true;
+    this.setState(() => ({ squares: newSquares }));
+  }
+
+  toggleFlag(y, x) {
+    const newSquares = this.copySquares(this.state.squares);
+    let flag = newSquares[y][x].flag;
+    let flagCount = this.state.flagCount;
+
+
+    if (!flag && flagCount > 0) {
+      // Toggle On
+      newSquares[y][x].flag = true;
+      flagCount--;
+    } else if (flag) {
+      // Toggle Off
+      newSquares[y][x].flag = false;
+      flagCount++;
+    } else {
+      return;
     }
-    return newSquares;
+
+    this.setState(() => ({
+      squares: newSquares,
+      flagCount: flagCount
+    }));
   }
 
   ////////////////////////////////////////
@@ -215,6 +205,19 @@ class Board extends React.Component {
     return result;
   }
 
+  copySquares(squares) {
+    const newSquares = [];
+    for (let row of squares) {
+      let newRow = [];
+      for (let square of row) {
+        let newSquare = Object.assign({}, square);
+        newRow.push(newSquare);
+      }
+      newSquares.push(newRow);
+    }
+    return newSquares;
+  }
+
   ////////////////////////////////////////
   //  Timers
 
@@ -228,6 +231,8 @@ class Board extends React.Component {
         this.setState(() => ({ timeCount: time + 1 }));
       }
     }, 1000);
+
+    // Save id of timer
     this.setState(() => ({ timerId: id }));
   }
 
@@ -242,7 +247,7 @@ class Board extends React.Component {
   squareClickHandler(e, y, x) {
     const square = this.state.squares[y][x];
 
-    // disable clicks
+    // Disable clicks
     if (this.state.gameState === 'game-over') {
       return;
     }
@@ -282,7 +287,7 @@ class Board extends React.Component {
       this.toggleFlag(y, x);
     }
 
-    // if this is the clock has not started, start it
+    // If the clock has not started, start it
     if (this.state.gameState === 'new-game') {
       this.setState(() => ({ gameState: 'playing' }));
       this.startTimer();
