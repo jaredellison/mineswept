@@ -9,7 +9,7 @@ const INIT_STATE = {
   sizeY: 9,
   mines: 10,
   timeCount: 0,
-  flagCount: 10,
+  flagCount: 0,
   squares: [[]],
   timerId: null,
   uncoveredCount: 0,
@@ -38,6 +38,7 @@ class Board extends React.Component {
   //  Change Game State
 
   startNewGame() {
+    this.stopTimer();
     // create squareState array based on sizeX and sizeY
     const squares = this.createSquares(this.state.sizeX, this.state.sizeY);
     // fill board with mines based on this.state.mines
@@ -112,7 +113,7 @@ class Board extends React.Component {
     const xMax = squares[0].length;
     let minesPlaced = 0;
 
-    while (minesPlaced < totalMines) {
+    while (minesPlaced < totalMines && minesPlaced < (yMax * xMax)) {
       let x = Math.floor(Math.random() * yMax);
       let y = Math.floor(Math.random() * xMax);
       if (!squares[y][x].mine) {
